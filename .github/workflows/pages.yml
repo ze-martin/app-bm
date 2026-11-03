@@ -1,0 +1,46 @@
+name: Actualizar radar y publicar Pages
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 10,16,22 * * *'
+  push:
+    branches: [main, master]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: football-${{ github.run_id }}
+          restore-keys: football-
+      - name: Consultar API-Football
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+        run: python scripts/refresh.py --days 3
+      - name: Preparar archivos públicos
+        run: |
+          mkdir public
+          cp index.html styles.css app.js public/
+          cp -r data public/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4

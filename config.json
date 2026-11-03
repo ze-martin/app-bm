@@ -1,0 +1,188 @@
+{
+  "leagues": [
+    {
+      "id": 281,
+      "name": "Liga 1 Perú"
+    },
+    {
+      "id": 310,
+      "name": "Albania"
+    },
+    {
+      "id": 78,
+      "name": "Bundesliga"
+    },
+    {
+      "id": 307,
+      "name": "Arabia Saudita"
+    },
+    {
+      "id": 128,
+      "name": "Argentina"
+    },
+    {
+      "id": 218,
+      "name": "Austria"
+    },
+    {
+      "id": 144,
+      "name": "Bélgica"
+    },
+    {
+      "id": 116,
+      "name": "Bielorrusia"
+    },
+    {
+      "id": 344,
+      "name": "Bolivia"
+    },
+    {
+      "id": 315,
+      "name": "Bosnia"
+    },
+    {
+      "id": 71,
+      "name": "Brasil"
+    },
+    {
+      "id": 172,
+      "name": "Bulgaria"
+    },
+    {
+      "id": 345,
+      "name": "República Checa"
+    },
+    {
+      "id": 265,
+      "name": "Chile"
+    },
+    {
+      "id": 318,
+      "name": "Chipre"
+    },
+    {
+      "id": 239,
+      "name": "Colombia"
+    },
+    {
+      "id": 162,
+      "name": "Costa Rica"
+    },
+    {
+      "id": 210,
+      "name": "Croacia"
+    },
+    {
+      "id": 119,
+      "name": "Dinamarca"
+    },
+    {
+      "id": 242,
+      "name": "Ecuador"
+    },
+    {
+      "id": 140,
+      "name": "España / La Liga"
+    },
+    {
+      "id": 179,
+      "name": "Escocia"
+    },
+    {
+      "id": 332,
+      "name": "Eslovaquia"
+    },
+    {
+      "id": 373,
+      "name": "Eslovenia"
+    },
+    {
+      "id": 253,
+      "name": "MLS"
+    },
+    {
+      "id": 244,
+      "name": "Finlandia"
+    },
+    {
+      "id": 197,
+      "name": "Grecia"
+    },
+    {
+      "id": 39,
+      "name": "Premier League"
+    },
+    {
+      "id": 357,
+      "name": "Irlanda"
+    },
+    {
+      "id": 383,
+      "name": "Israel"
+    },
+    {
+      "id": 135,
+      "name": "Italia"
+    },
+    {
+      "id": 262,
+      "name": "México"
+    },
+    {
+      "id": 103,
+      "name": "Noruega"
+    },
+    {
+      "id": 88,
+      "name": "Países Bajos"
+    },
+    {
+      "id": 250,
+      "name": "Paraguay"
+    },
+    {
+      "id": 106,
+      "name": "Polonia"
+    },
+    {
+      "id": 94,
+      "name": "Portugal"
+    },
+    {
+      "id": 283,
+      "name": "Rumanía"
+    },
+    {
+      "id": 286,
+      "name": "Serbia"
+    },
+    {
+      "id": 113,
+      "name": "Suecia"
+    },
+    {
+      "id": 207,
+      "name": "Suiza"
+    },
+    {
+      "id": 203,
+      "name": "Turquía"
+    },
+    {
+      "id": 333,
+      "name": "Ucrania"
+    },
+    {
+      "id": 268,
+      "name": "Uruguay"
+    },
+    {
+      "id": 2,
+      "name": "Champions League"
+    },
+    {
+      "id": 3,
+      "name": "Europa League"
+    }
+  ]
+}
