@@ -36,3 +36,17 @@ El monitor consulta `fixtures/statistics?fixture=ID&half=true` al detectar un ca
 Para obtener/publicar estadísticas sin configurar Telegram: `python scripts/telegram_monitor.py --football-env D:/CODEX/APUESTAS/.env --capture-only --publish`. Sigue requiriendo un proceso activo en PC o servidor. Si se ejecuta sin `--publish`, los datos se guardan únicamente en `data/live70.json` local y no actualizan el dashboard público.
 
 La captura es una observación histórica, no un marcador permanentemente actualizado. Si falla la consulta de estadísticas, el aviso muestra N/D; no se oculta el fallo ni se rellena con ceros.
+
+## Qué es tu bot y cómo funciona
+
+El bot es un chat de Telegram que recibe los avisos enviados por el monitor BM. No analiza partidos por su cuenta ni ejecuta apuestas. La cadena es: API-Football → monitor encendido → bot → tu celular. Puedes cerrar el dashboard; el monitor debe seguir activo en PC o servidor. El celular solo necesita Telegram, conexión y notificaciones habilitadas.
+
+En @BotFather escribe `/newbot`, elige un nombre (por ejemplo BM Radar) y un usuario disponible que termine en `bot`. BotFather entrega un token: es la contraseña del bot. Introdúcelo únicamente en `python scripts/setup_telegram.py`, cuya entrada está oculta. Después de crear el bot, abre su enlace y pulsa Iniciar o envía `/start`; Telegram no permite que el bot inicie una conversación contigo sin ese paso. El asistente local detecta el chat privado para enviarte avisos.
+
+Crear el bot no enciende el monitor. La captura de 12 horas que se inició en este PC funciona sin enviar mensajes (`--capture-only`). Para recibir avisos, hay que configurar el bot y sustituir ese proceso por el monitor sin `--capture-only`, evitando dos monitores simultáneos. Estado de esta entrega: bot no configurado y mensajes sin activar.
+
+El aviso incluirá marcador, minuto real, elegido y estadísticas de ambos equipos. Ahora también agrega disparos dentro del área, bloqueos, atajadas, amarillas, rojas, xG y precisión (tiros a puerta / tiros totales). xG admite decimales y sigue la cobertura del proveedor. Las rojas generan una advertencia visual y en Telegram, sin decidir automáticamente la apuesta. No se inventa un índice de presión ni un pronóstico de gol.
+
+Si pierdes el token, puedes revocarlo y emitir otro desde @BotFather. No necesitas dar tu contraseña de Telegram al dashboard. Para silenciar el bot, puedes silenciar el chat o detener el monitor.
+
+Fuentes: [Creación de bots](https://core.telegram.org/bots/tutorial), [Cómo funcionan](https://core.telegram.org/bots).

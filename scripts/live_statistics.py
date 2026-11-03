@@ -8,7 +8,9 @@ import base64
 from datetime import datetime
 from pathlib import Path
 
-METRICS={'possession':'Ball Possession','corners':'Corner Kicks','shots':'Total Shots','onTarget':'Shots on Goal'}
+METRICS={'possession':'Ball Possession','corners':'Corner Kicks','shots':'Total Shots','onTarget':'Shots on Goal',
+    'insideBox':'Shots insidebox','blocked':'Blocked Shots','saves':'Goalkeeper Saves',
+    'yellowCards':'Yellow Cards','redCards':'Red Cards','xG':'expected_goals'}
 
 def normalize_stats(payload, fixture):
     by_team={r['team']['id']:r for r in payload.get('response',[])}
@@ -23,12 +25,14 @@ def normalize_stats(payload, fixture):
                 value=values.get(label)
                 try:
                     n=float(str(value).rstrip('%')) if value is not None else None
-                    if n is not None and (not math.isfinite(n) or n<0 or (key=='possession' and n>100) or (key!='possession' and not n.is_integer())):
+                    if n is not None and (not math.isfinite(n) or n<0 or (key=='possession' and n>100) or (key not in {'possession','xG'} and not n.is_integer())):
                         n=None
                     parsed[key]=int(n) if n is not None and n.is_integer() else n
                 except (ValueError,TypeError):
                     parsed[key]=None
             result[side][period]=parsed
+            shots, on_target=parsed['shots'],parsed['onTarget']
+            parsed['accuracy']=round(100*on_target/shots,1) if shots and on_target is not None and on_target<=shots else None
     return result
 
 def fetch_statistics(key,fixture):
@@ -98,7 +102,12 @@ def statistics_text(stats,fixture):
     lines=[]
     for period,label in [('secondHalf','SEGUNDO TIEMPO'),('total','ACUMULADO DEL PARTIDO')]:
         lines.append(label+' · local / visita')
-        for key,title in [('possession','Posesión'),('corners','Córners'),('shots','Disparos totales'),('onTarget','A puerta')]:
-            lines.append(title+': '+value(stats['home'][period][key],key=='possession')+' / '+value(stats['away'][period][key],key=='possession'))
+        for key,title in [('possession','Posesión'),('corners','Córners'),('shots','Disparos totales'),('onTarget','A puerta'),
+            ('insideBox','Disparos dentro del área'),('blocked','Disparos bloqueados'),('saves','Atajadas'),
+            ('yellowCards','Amarillas'),('redCards','Rojas'),('xG','xG'),('accuracy','Precisión de tiro')]:
+            lines.append(title+': '+value(stats['home'][period].get(key),key in {'possession','accuracy'})+' / '+value(stats['away'][period].get(key),key in {'possession','accuracy'}))
+    reds=[stats[side]['total'].get('redCards') for side in ('home','away')]
+    if any(r is not None and r>0 for r in reds):
+        lines.append('ATENCIÓN: hay expulsiones registradas; revisar cómo afectan al equipo elegido.')
     lines.append('N/D = dato no disponible. No se estima la posesión del 2T restando porcentajes.')
     return '\n'.join(lines)

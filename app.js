@@ -1,4 +1,4 @@
-import {initLive70} from './live70.js?v=stats70';
+import {initLive70} from './live70.js?v=extended70';
 import {renderDashboard} from './dashboard.js?v=dashboard70';
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

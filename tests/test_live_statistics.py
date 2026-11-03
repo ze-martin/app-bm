@@ -43,5 +43,18 @@ class Statistics(unittest.TestCase):
             second,changed=save_observation(root,self.f,selected,stats,now)
             self.assertFalse(changed)
             self.assertEqual(second['observations'][0]['minute'],71)
+    def test_xg_decimal_and_accuracy(self):
+        self.payload['response'][0]['statistics']=[{'type':'expected_goals','value':'1.37'},
+            {'type':'Total Shots','value':8},{'type':'Shots on Goal','value':3},{'type':'Red Cards','value':1}]
+        stats=normalize_stats(self.payload,self.f)
+        self.assertEqual(stats['away']['total']['xG'],1.37)
+        self.assertEqual(stats['away']['total']['accuracy'],37.5)
+        self.assertIn('expulsiones',statistics_text(stats,self.f))
+    def test_zero_shots_does_not_imply_zero_accuracy(self):
+        self.payload['response'][0]['statistics']=[{'type':'Total Shots','value':0},{'type':'Shots on Goal','value':0}]
+        self.assertIsNone(normalize_stats(self.payload,self.f)['away']['total']['accuracy'])
+    def test_more_on_target_than_shots_is_not_valid_accuracy(self):
+        self.payload['response'][0]['statistics']=[{'type':'Total Shots','value':1},{'type':'Shots on Goal','value':2}]
+        self.assertIsNone(normalize_stats(self.payload,self.f)['away']['total']['accuracy'])
 
 if __name__=='__main__':unittest.main()
