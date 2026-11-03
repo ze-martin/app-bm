@@ -33,7 +33,7 @@ Fuente: Excel `Parámetros_APP.xlsx` y dos audios del 03/11/2026. Cada equipo se
 - Solo se califican partidos `NS` con inicio futuro. El navegador retira candidatos cuyo horario ya pasó.
 - La revisión al minuto 70 es manual: descartar si el equipo ya anotó y evaluar estadísticas del segundo tiempo. Esta versión no obtiene estadísticas en vivo ni sugiere importes o ejecuta apuestas.
 
-“ESPAÑA” y “1ERA ESPAÑA” se unifican en La Liga; por eso son 46 competiciones únicas. “CHPRE” se interpreta como Chipre. Se usa primera división para los países sin división explícita. Estos supuestos se pueden cambiar en `config.json`. Los identificadores de ligas deben contrastarse con la cobertura de tu plan API-Football.
+“ESPAÑA” y “1ERA ESPAÑA” se unifican en La Liga; por eso son 47 competiciones únicas (incluida la Championship de Inglaterra, API-Football 40). “CHPRE” se interpreta como Chipre. Se usa primera división para los países sin división explícita. Estos supuestos se pueden cambiar en `config.json`. Los identificadores de ligas deben contrastarse con la cobertura de tu plan API-Football.
 
 Filtros por texto, liga, fecha y estado; evidencias desplegables; exportación CSV de las filas visibles; diseño adaptable a móvil. Ante una descarga parcial, se indican las incidencias. Un resultado sin candidatos es válido y no se rellena con ejemplos.
 

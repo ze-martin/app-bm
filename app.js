@@ -31,3 +31,17 @@ try{const res=await fetch('./data/matches.json',{cache:'no-store'});if(!res.ok)t
  const leagues=new Map(rows.map(r=>[r.f.league.id,r.f.league.country + " / " + r.f.league.name]));for(const [id,name]of [...leagues].sort((a,b)=>a[1].localeCompare(b[1]))){const o=new Option(name,id);$('#league').add(o);}
  const warnings=[];if(!d.updatedAt)warnings.push('Todavía no se han descargado datos de API-Football.');else if(Date.now()-new Date(d.updatedAt)>6*3600000)warnings.push('Datos de más de 6 horas: actualiza antes de decidir.');if(d.errors?.length)warnings.push(`${d.errors.length} incidencias de cobertura. Los datos ausentes no califican como candidatos.`);$('#notice').textContent=warnings.join(' ');render();
 }catch(e){$('#notice').textContent=e.message;$('#results').innerHTML='<div class="empty"><b>Datos no disponibles</b>Ejecuta la actualización y vuelve a cargar.</div>';}
+
+async function loadLeagueCatalog(){
+ try{
+  const response=await fetch('./config.json',{cache:'no-store'});
+  if(!response.ok)throw Error('No se pudo cargar el catálogo de ligas.');
+  const config=await response.json();
+  $('#league-total').textContent=`· ${config.leagues.length}`;
+  $('#configured-count').textContent=`Dentro de tus ${config.leagues.length} competiciones`;
+  const fixtureCounts=new Map();
+  for(const r of rows){if(!fixtureCounts.has(r.f.league.id))fixtureCounts.set(r.f.league.id,new Set());fixtureCounts.get(r.f.league.id).add(r.f.fixture.id);}
+  $('#league-catalog').innerHTML=config.leagues.map(l=>`<article class="league-item"><b>${esc(l.name)}</b><span>${fixtureCounts.get(l.id)?.size??0} partidos en el período</span>${l.id===40?'<small>CHAMPIONSHIP · INGLATERRA</small>':''}</article>`).join('');
+ }catch(e){$('#league-catalog').textContent=e.message;}
+}
+await loadLeagueCatalog();
