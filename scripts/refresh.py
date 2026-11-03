@@ -62,10 +62,11 @@ def evaluate(fixture, history, ranks, previous, now):
         if not last:
             reasons.append('Sin enfrentamiento finalizado en el mismo año')
         goals = None
+        oldside = 'away' if side == 'home' else 'home'
+        threshold = 2 if oldside == 'home' else 1
         if last:
             oldside = 'home' if last['teams']['home']['id'] == team['id'] else 'away'
             goals = last['goals'][oldside]
-            threshold = 2 if oldside == 'home' else 1
             if goals is None:
                 missing.append('Marcador H2H no disponible')
             elif goals < threshold:
@@ -90,7 +91,9 @@ def evaluate(fixture, history, ranks, previous, now):
         out.append({'team': team['name'], 'teamId': team['id'], 'side': side,
             'status': 'excluded' if reasons else 'pending' if missing else 'candidate',
             'reasons': reasons + missing, 'rivalRank': rank, 'h2h': last,
-            'previous': recent, 'goals': goals, 'won': won})
+            'previous': recent, 'goals': goals, 'won': won,
+            'previousVenue': oldside, 'requiredH2hGoals': threshold,
+            'targetGoals': 1})
     return out
 
 def main():

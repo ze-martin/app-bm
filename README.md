@@ -27,7 +27,7 @@ El workflow actualiza los próximos tres días a las 05:20, 11:20 y 17:20 de Bog
 Fuente: Excel `Parámetros_APP.xlsx` y dos audios del 03/11/2026. Cada equipo se evalúa por separado, sin transformar estos filtros en probabilidades.
 
 - Se consulta el último enfrentamiento finalizado del mismo año calendario, anterior a la consulta, con localías invertidas según el ejemplo del audio. Puede pertenecer a otra competición.
-- Se considera la condición del equipo en ese antecedente: local, al menos 2 goles; visitante, al menos 1.
+- Se considera la condición del equipo en ese antecedente: si antes fue local y marcó 2 o más, ahora de visitante se evalúa para marcar al menos 1; si antes fue visitante y marcó 1 o más, ahora de local se evalúa para marcar al menos 1. El audio de las 13:28 del 03/11/2026 confirma ambas direcciones. Cada fila y el CSV muestran la localía anterior, los goles, el mínimo exigido y el objetivo actual. Es un filtro histórico, no una probabilidad calculada.
 - Se exige posición del rival mayor que 5 en la liga del partido y victoria del elegido en su último encuentro finalizado de cualquier competición.
 - Sin clasificación o antecedentes suficientes, queda “Por verificar”, salvo que otra regla ya permita descartarlo. En copas sin tabla de liga no se infiere una posición: queda pendiente. Tablas con posiciones contradictorias entre grupos tampoco se resuelven por suposición.
 - Solo se califican partidos `NS` con inicio futuro. El navegador retira candidatos cuyo horario ya pasó.

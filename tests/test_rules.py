@@ -45,6 +45,20 @@ class Rules(unittest.TestCase):
         self.h2h['goals']['home'] = 2
         result = evaluate(self.future, [self.h2h], {1: 6, 2: 6}, self.previous, self.now)
         self.assertEqual(result[1]['status'], 'candidate')
+    def test_audio_adt_two_home_goals_targets_one_away(self):
+        self.future['teams']['home']['name'] = 'Chancas'
+        self.future['teams']['away']['name'] = 'ADT'
+        self.h2h['goals'] = {'home': 2, 'away': 0}
+        self.previous[2] = fixture(6, home=2, away=3, goals=(1,0))
+        result = evaluate(self.future, [self.h2h], {1: 6, 2: 7}, self.previous, self.now)[1]
+        self.assertEqual(result['status'], 'candidate')
+        self.assertEqual((result['side'], result['previousVenue']), ('away', 'home'))
+        self.assertEqual((result['requiredH2hGoals'], result['targetGoals']), (2, 1))
+    def test_audio_chancas_one_away_goal_targets_one_home(self):
+        result = self.run_rule()
+        self.assertEqual(result['status'], 'candidate')
+        self.assertEqual((result['side'], result['previousVenue']), ('home', 'away'))
+        self.assertEqual((result['requiredH2hGoals'], result['targetGoals']), (1, 1))
 
 if __name__ == '__main__':
     unittest.main()
