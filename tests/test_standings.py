@@ -1,4 +1,3 @@
-import copy
 import unittest
 from datetime import datetime, timedelta, timezone
 from scripts.standings import api_ranks, resolve_rank
@@ -23,6 +22,9 @@ class Standings(unittest.TestCase):
     def test_valid_evidence_supplies_missing_rank(self):
         rank, meta=self.resolve()
         self.assertEqual((rank,meta['status']),(13,'verified'))
+    def test_single_annual_table_does_not_replace_clausura(self):
+        tables=[{'league':{'standings':[[{'team':{'id':42},'group':'Tabla Anual','rank':13}]]}}]
+        self.assertEqual(api_ranks(tables,self.fixture),{})
     def test_sources_disagree_never_qualify(self):
         self.check['sources'][1]['rank']=14
         self.assertEqual(self.resolve()[1]['status'],'conflict')

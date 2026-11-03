@@ -16,7 +16,11 @@ def api_ranks(tables, fixture):
     groups = [g for t in tables for g in t['league']['standings'] if g]
     phase = normalize(phase_of(fixture))
     matches = [g for g in groups if phase and any(phase in normalize(r.get('group', '')) for r in g)]
-    selected = matches or (groups if len(groups) == 1 else [])
+    named_phases = ('apertura', 'clausura', 'annual', 'anual')
+    single_conflicts = len(groups) == 1 and any(
+        marker in normalize(row.get('group', '')) and marker not in phase
+        for row in groups[0] for marker in named_phases)
+    selected = matches or (groups if len(groups) == 1 and not single_conflicts else [])
     positions = {}
     for group in selected:
         for row in group:
