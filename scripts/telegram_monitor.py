@@ -10,8 +10,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 try:
     from .refresh import ROOT, TZ, load_env
+    from .live_statistics import fetch_statistics, save_observation, publish_observations, statistics_text, normalize_stats
 except ImportError:
     from refresh import ROOT, TZ, load_env
+    from live_statistics import fetch_statistics, save_observation, publish_observations, statistics_text, normalize_stats
 
 def fetch_live(key):
     # Never use the one-hour historical API cache for live scores.
@@ -51,14 +53,15 @@ def telegram(token, chat_id, text):
         # Token lives in the URL: never propagate the URL in exception output.
         raise RuntimeError('No se pudo enviar el aviso a Telegram.') from None
 
-def message(s, f):
+def message(s, f, statistics=None):
     return (f"BM · REVISAR PARTIDO · minuto {f['fixture']['status']['elapsed']}\n"
         f"{f['teams']['home']['name']} {f['goals']['home']}–{f['goals']['away']} {f['teams']['away']['name']}\n"
         f"Equipo preseleccionado: {s['team']} (aún sin gol).\n"
+        +(statistics_text(statistics,f)+'\n' if statistics is not None else '')+
         "Comprobar dominio y estadísticas SOLO del segundo tiempo. No es una orden de apostar.\n"
         "https://ze-martin.github.io/app-bm/")
 
-def run_once(dry_run=False):
+def run_once(dry_run=False,capture_only=False,publish=False):
     now=datetime.now(TZ)
     data=json.loads((ROOT/'data/matches.json').read_text(encoding='utf-8'))
     # A shortlist must be refreshed daily. Never alert from an old multi-day report.
@@ -75,7 +78,7 @@ def run_once(dry_run=False):
     if not key:
         raise RuntimeError('Falta FOOTBALL_API_KEY.')
     token, chat=os.environ.get('TELEGRAM_BOT_TOKEN'),os.environ.get('TELEGRAM_CHAT_ID')
-    if not dry_run and (not token or not chat):
+    if not dry_run and not capture_only and (not token or not chat):
         raise RuntimeError('Configurar Telegram con scripts/setup_telegram.py antes de activar envíos.')
     ledger=ROOT/'.cache/telegram-sent.json'
     sent=json.loads(ledger.read_text(encoding='utf-8')) if ledger.exists() else {}
@@ -84,14 +87,30 @@ def run_once(dry_run=False):
         match=watch.get(f['fixture']['id'])
         if not match:
             continue
+        qualifying=[s for s in match['selections'] if should_alert(s,f)]
+        if not qualifying:
+            continue
+        try:
+            statistics=fetch_statistics(key,f)
+        except Exception:
+            statistics=normalize_stats({'response':[]},f)
+            print('Estadísticas no disponibles para fixture '+str(f['fixture']['id']),flush=True)
+        observations,changed=save_observation(ROOT,f,qualifying,statistics,now)
+        if publish:
+            try:
+                publish_observations(observations)
+            except RuntimeError as e:
+                print(str(e),flush=True)
+        if capture_only:
+            continue
         for s in match['selections']:
             identity=f"{f['fixture']['id']}:{s['teamId']}:70"
             if identity in sent or not should_alert(s,f):
                 continue
             if dry_run:
-                print('SIMULACIÓN: '+message(s,f),flush=True)
+                print('SIMULACIÓN: '+message(s,f,statistics),flush=True)
             else:
-                telegram(token,chat,message(s,f))
+                telegram(token,chat,message(s,f,statistics))
                 sent[identity]=now.isoformat()
                 ledger.parent.mkdir(exist_ok=True)
                 temp=ledger.with_suffix('.tmp')
@@ -108,10 +127,15 @@ def main():
     p.add_argument('--football-env',type=Path)
     p.add_argument('--once',action='store_true')
     p.add_argument('--dry-run',action='store_true')
+    p.add_argument('--capture-only',action='store_true',help='Capturar estadísticas sin enviar Telegram')
+    p.add_argument('--publish',action='store_true',help='Publicar solo el archivo deportivo para el dashboard')
     p.add_argument('--interval',type=int,default=60)
+    p.add_argument('--hours',type=float,default=0,help='Detener al cumplir estas horas; 0 mantiene el proceso activo')
     args=p.parse_args()
     if args.interval<30:
         p.error('El intervalo mínimo es 30 segundos.')
+    if args.hours<0:
+        p.error('--hours no puede ser negativo.')
     load_env(args.env)
     if args.football_env:
         load_env(args.football_env)
@@ -123,16 +147,17 @@ def main():
     except FileExistsError:
         p.error('Ya hay un monitor activo. Si se cerró abruptamente, revisar y retirar .cache/telegram-monitor.lock.')
     os.close(fd)
+    deadline=time.monotonic()+args.hours*3600 if args.hours else None
     try:
         while True:
             try:
-                run_once(args.dry_run)
+                run_once(args.dry_run,args.capture_only,args.publish)
             except Exception as e:
                 # Avoid emitting exception URLs, which may include credentials.
                 print('Monitor: '+(str(e) if isinstance(e,RuntimeError) else 'consulta fallida; se reintentará.'),flush=True)
                 if args.once:
                     raise SystemExit(1)
-            if args.once:
+            if args.once or (deadline is not None and time.monotonic()+args.interval>=deadline):
                 break
             time.sleep(args.interval)
     finally:
