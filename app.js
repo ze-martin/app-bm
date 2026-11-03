@@ -1,7 +1,9 @@
+import {renderDashboard} from './dashboard.js?v=dashboard70';
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const stamp=v=>new Date(v).toLocaleString('es-PE',{timeZone:'America/Bogota',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 const localDay=v=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v));
+let snapshot=null;
 let rows=[],status='candidate',visible=[];
 function score(f){return `${f.teams.home.name} ${f.goals.home}–${f.goals.away} ${f.teams.away.name}`;}
 function goalRule(s){
@@ -24,7 +26,7 @@ for(const id of ['search','league','date'])$('#'+id).addEventListener('input',re
 document.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>{status=b.dataset.status;document.querySelectorAll('[data-status]').forEach(x=>x.classList.toggle('selected',x===b));render();});
 $('#clear').onclick=()=>{['search','league','date'].forEach(x=>$('#'+x).value='');render();};
 $('#export').onclick=()=>{const cell=v=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';const csv=[['Fecha','Liga','Local','Visita','Equipo','Estado','Posición rival','Localía anterior','Goles H2H','Mínimo H2H','Objetivo de goles','Estado de verificación','Fase','Fecha verificación','Fuentes de clasificación','Motivos'],...visible.map(({f,s})=>[stamp(f.fixture.date),f.league.name,f.teams.home.name,f.teams.away.name,s.team,s.status,s.rivalRank,s.previousVenue,s.goals,s.requiredH2hGoals,s.targetGoals,s.rankVerification?.status,s.rankVerification?.phase,s.rankVerification?.checkedAt,(s.rankVerification?.sources??[]).map(x=>x.url).join(' / '),s.reasons.join(' / ')])].map(r=>r.map(cell).join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='radar-partidos.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
-try{const res=await fetch('./data/matches.json',{cache:'no-store'});if(!res.ok)throw Error('No se pudo cargar el archivo de partidos');const d=await res.json();rows=d.matches.flatMap(m=>m.selections.map(s=>({f:m.fixture,s:{...s}}))).sort((a,b)=>a.f.fixture.date.localeCompare(b.f.fixture.date));
+try{const res=await fetch('./data/matches.json',{cache:'no-store'});if(!res.ok)throw Error('No se pudo cargar el archivo de partidos');const d=await res.json();snapshot=d;rows=d.matches.flatMap(m=>m.selections.map(s=>({f:m.fixture,s:{...s}}))).sort((a,b)=>a.f.fixture.date.localeCompare(b.f.fixture.date));
  // A historical snapshot must never suggest a match that has already started.
  for(const r of rows)if(new Date(r.f.fixture.date)<=new Date()&&r.s.status==='candidate'){r.s.status='excluded';r.s.reasons=[...r.s.reasons,'La hora de inicio ya pasó; requiere revisión en vivo'];}
  $('#updated').textContent=d.updatedAt?'Actualizado · '+stamp(d.updatedAt):'Sin actualización';$('#total').textContent=d.matches.length;$('#candidates').textContent=rows.filter(r=>r.s.status==='candidate').length;$('#count').textContent=$('#candidates').textContent;$('#pending').textContent=rows.filter(r=>r.s.status==='pending').length;$('#leagues').textContent=d.leaguesSeen;
@@ -45,3 +47,5 @@ async function loadLeagueCatalog(){
  }catch(e){$('#league-catalog').textContent=e.message;}
 }
 await loadLeagueCatalog();
+
+renderDashboard(snapshot);

@@ -38,7 +38,7 @@ jobs:
       - name: Preparar archivos públicos
         run: |
           mkdir public
-          cp index.html styles.css app.js config.json PROTOCOL_STANDINGS.md public/
+          cp index.html styles.css app.js dashboard.js config.json PROTOCOL_STANDINGS.md TELEGRAM.md public/
           cp -r data public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

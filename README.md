@@ -45,3 +45,7 @@ node --check app.js
 ```
 
 Documentación: https://www.api-football.com/documentation-v3 y https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+
+## Dashboard y Telegram
+
+Panel de cobertura de clasificación, filtros acumulados, motivos de descarte, distribución de candidatos por liga y agenda orientativa. [Configurar avisos por Telegram](TELEGRAM.md): requiere bot y monitor activo en PC o servidor. La integración no está activada todavía.

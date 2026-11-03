@@ -89,6 +89,7 @@ def evaluate(fixture, history, ranks, previous, now, checks=None):
                 reasons.append('No ganó su último partido')
         else:
             missing.append('Último partido no disponible')
+        prequalified = not reasons and not missing
         eligible = fixture['fixture']['status']['short'] == 'NS' and kickoff > now
         if not eligible:
             reasons.append('Partido iniciado o no programado')
@@ -97,7 +98,7 @@ def evaluate(fixture, history, ranks, previous, now, checks=None):
             'reasons': reasons + missing, 'rivalRank': rank, 'h2h': last,
             'previous': recent, 'goals': goals, 'won': won,
             'previousVenue': oldside, 'requiredH2hGoals': threshold,
-            'targetGoals': 1, 'rankVerification': rank_check})
+            'targetGoals': 1, 'rankVerification': rank_check, 'prequalified': prequalified})
     return out
 
 def main():
