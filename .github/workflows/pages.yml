@@ -32,7 +32,9 @@ jobs:
         if: github.event_name != 'push'
         env:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
-        run: python scripts/refresh.py --days 3
+        run: |
+          python scripts/audit_leagues.py
+          python scripts/refresh.py --days 3
       - name: Reevaluar evidencia y vigencia
         run: python scripts/recheck.py
       - name: Preparar archivos públicos

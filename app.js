@@ -41,11 +41,16 @@ async function loadLeagueCatalog(){
   const response=await fetch('./config.json',{cache:'no-store'});
   if(!response.ok)throw Error('No se pudo cargar el catálogo de ligas.');
   const config=await response.json();
+  let audit=null;
+  try{const report=await fetch('./data/league-audit.json',{cache:'no-store'});if(report.ok)audit=await report.json();}catch{}
+  const identities=new Map((audit?.competitions??[]).map(l=>[l.id,l]));
+  const auditLabel=$('#league-audit-status');
+  if(auditLabel)auditLabel.textContent=audit?`Catálogo contrastado con API-Football: ${stamp(audit.checkedAt)}. Identidad, país y temporada de ${audit.total} competiciones verificadas.`:'Auditoría del catálogo no disponible.';
   $('#league-total').textContent=`· ${config.leagues.length}`;
   $('#configured-count').textContent=`Dentro de tus ${config.leagues.length} competiciones`;
   const fixtureCounts=new Map();
   for(const r of rows){if(!fixtureCounts.has(r.f.league.id))fixtureCounts.set(r.f.league.id,new Set());fixtureCounts.get(r.f.league.id).add(r.f.fixture.id);}
-  $('#league-catalog').innerHTML=config.leagues.map(l=>`<article class="league-item"><b>${esc(l.name)}</b><span>${fixtureCounts.get(l.id)?.size??0} partidos en el período</span>${l.id===40?'<small>CHAMPIONSHIP · INGLATERRA</small>':''}</article>`).join('');
+  $('#league-catalog').innerHTML=config.leagues.map(l=>{const a=identities.get(l.id);const count=fixtureCounts.get(l.id)?.size??0;return `<article class="league-item"><b>${esc(l.name)}</b>${a?`<span>${esc(a.country)} / ${esc(a.officialName)}</span><small>ID ${l.id} · temporada ${a.season} · identidad verificada</small>`:''}<span>${count?`${count} partido(s) devueltos en el período`:'Sin partidos devueltos por la API en el período'}</span>${a?.note?`<span>${esc(a.note)}</span>`:''}</article>`;}).join('');
  }catch(e){$('#league-catalog').textContent=e.message;}
 }
 await loadLeagueCatalog();

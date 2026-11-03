@@ -142,7 +142,11 @@
     },
     {
       "id": 250,
-      "name": "Paraguay"
+      "name": "Paraguay / División Profesional · Apertura"
+    },
+    {
+      "id": 252,
+      "name": "Paraguay / División Profesional · Clausura"
     },
     {
       "id": 106,
@@ -178,7 +182,7 @@
     },
     {
       "id": 268,
-      "name": "Uruguay"
+      "name": "Uruguay / Primera División"
     },
     {
       "id": 2,

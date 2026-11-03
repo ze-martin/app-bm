@@ -33,7 +33,7 @@ Fuente: Excel `Parámetros_APP.xlsx` y dos audios del 03/11/2026. Cada equipo se
 - Solo se califican partidos `NS` con inicio futuro. El navegador retira candidatos cuyo horario ya pasó.
 - La revisión al minuto 70 es manual: descartar si el equipo ya anotó y evaluar estadísticas del segundo tiempo. Esta versión no obtiene estadísticas en vivo ni sugiere importes o ejecuta apuestas.
 
-“ESPAÑA” y “1ERA ESPAÑA” se unifican en La Liga; por eso son 47 competiciones únicas (incluida la Championship de Inglaterra, API-Football 40). “CHPRE” se interpreta como Chipre. Se usa primera división para los países sin división explícita. Estos supuestos se pueden cambiar en `config.json`. Los identificadores de ligas deben contrastarse con la cobertura de tu plan API-Football.
+“ESPAÑA” y “1ERA ESPAÑA” se unifican en La Liga; por eso son 48 competiciones únicas (incluida la Championship de Inglaterra, API-Football 40). “CHPRE” se interpreta como Chipre. Se usa primera división para los países sin división explícita. Estos supuestos se pueden cambiar en `config.json`. Los identificadores de ligas deben contrastarse con la cobertura de tu plan API-Football.
 
 Filtros por texto, liga, fecha y estado; evidencias desplegables; exportación CSV de las filas visibles; diseño adaptable a móvil. Ante una descarga parcial, se indican las incidencias. Un resultado sin candidatos es válido y no se rellena con ejemplos.
 
@@ -49,3 +49,9 @@ Documentación: https://www.api-football.com/documentation-v3 y https://docs.git
 ## Dashboard y Telegram
 
 Panel de cobertura de clasificación, filtros acumulados, motivos de descarte, distribución de candidatos por liga y agenda orientativa. [Configurar avisos por Telegram](TELEGRAM.md): requiere bot y monitor activo en PC o servidor. La integración no está activada todavía.
+
+## Revisión de cobertura de ligas
+
+Se contrastaron todas las identidades con el catálogo de API-Football. Paraguay necesita 250 (Apertura) y 252 (Clausura); 251 es División Intermedia y queda fuera. Uruguay usa 268 para las fases de 2026; el antiguo 270 no tiene temporada 2026 y no se añade. Cada ficha del catálogo público muestra país, nombre del proveedor, ID, temporada y fecha de auditoría.
+
+`python scripts/audit_leagues.py --env RUTA_ENV` comprueba que el alcance requerido esté completo y que coincidan país, tipo y temporada. El workflow repite la auditoría antes de cada descarga programada. Identidad verificada no garantiza estadísticas disponibles en cada fixture.
