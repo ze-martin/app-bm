@@ -29,6 +29,7 @@ jobs:
           key: football-${{ github.run_id }}
           restore-keys: football-
       - name: Consultar API-Football
+        if: github.event_name != 'push'
         env:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: python scripts/refresh.py --days 3

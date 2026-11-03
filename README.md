@@ -20,7 +20,7 @@ Abre http://localhost:8080. Para otra fecha: `--date 2026-11-05`. Los días admi
 3. En Settings → Pages selecciona GitHub Actions como fuente.
 4. Ejecuta “Actualizar radar y publicar Pages” desde Actions.
 
-El workflow actualiza los próximos tres días a las 05:20, 11:20 y 17:20 de Bogotá/Lima. Si falla la consulta inicial, no publica una descarga vacía. No publica `.env`, cachés ni scripts Python. Este checkout no tiene remoto configurado: la publicación requiere asociarlo con el repositorio destino.
+El workflow actualiza los próximos tres días a las 05:20, 11:20 y 17:20 de Bogotá/Lima y al ejecutarlo manualmente. Los pushes publican el snapshot existente sin gastar consultas adicionales. Si falla la consulta inicial, no publica una descarga vacía. No publica `.env`, cachés ni scripts Python. Repositorio: https://github.com/ze-martin/app-bm · Dashboard: https://ze-martin.github.io/app-bm/
 
 ## Reglas y evidencia
 
