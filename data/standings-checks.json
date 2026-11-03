@@ -1,0 +1,27 @@
+[
+  {
+    "fixtureId": 1549539,
+    "teamId": 2558,
+    "teamName": "Comerciantes Unidos",
+    "leagueId": 281,
+    "season": 2026,
+    "phase": "Clausura",
+    "checkedAt": "2026-11-03T14:42:22.845840-05:00",
+    "sources": [
+      {
+        "name": "FotMob",
+        "url": "https://www.fotmob.com/leagues/131/table/liga-1",
+        "rank": 13,
+        "row": "Clausura 2026 / All: 13 Comerciantes Unidos; PJ 14, G 3, E 5, P 6, GF 24, GC 25, puntos 14.",
+        "method": "visual-scroll"
+      },
+      {
+        "name": "Fútbol Peruano",
+        "url": "https://www.futbolperuano.com/liga-1/clausura/tabla-de-posiciones",
+        "rank": 13,
+        "row": "Clausura 2026 / Fase regular: 13 Comerciantes Unidos; puntos 14, PJ 14, G 3, E 5, P 6, GF 24, GC 25.",
+        "method": "visual-scroll"
+      }
+    ]
+  }
+]

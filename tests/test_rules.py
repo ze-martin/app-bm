@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from scripts.refresh import evaluate
 
 def fixture(id, home=1, away=2, goals=(0, 1), date='2026-02-01T12:00:00+00:00', status='FT'):
-    return {'fixture': {'id': id, 'date': date, 'status': {'short': status}},
+    return {'league': {'id': 281, 'season': 2026, 'round': 'Clausura - 15'},
+        'fixture': {'id': id, 'date': date, 'status': {'short': status}},
         'teams': {'home': {'id': home, 'name': str(home), 'winner': goals[0] > goals[1]},
                   'away': {'id': away, 'name': str(away), 'winner': goals[1] > goals[0]}},
         'goals': dict(zip(['home', 'away'], goals))}

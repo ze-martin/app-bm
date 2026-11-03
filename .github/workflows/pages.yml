@@ -33,10 +33,12 @@ jobs:
         env:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: python scripts/refresh.py --days 3
+      - name: Reevaluar evidencia y vigencia
+        run: python scripts/recheck.py
       - name: Preparar archivos públicos
         run: |
           mkdir public
-          cp index.html styles.css app.js public/
+          cp index.html styles.css app.js PROTOCOL_STANDINGS.md public/
           cp -r data public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -13,6 +13,10 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 TZ = ZoneInfo('America/Bogota')
 FINISHED = {'FT', 'AET', 'PEN'}
+try:
+    from .standings import api_ranks, load_checks, resolve_rank
+except ImportError:
+    from standings import api_ranks, load_checks, resolve_rank
 
 def load_env(path):
     if path.exists():
@@ -45,7 +49,7 @@ class API:
         cache.write_text(json.dumps(data), encoding='utf-8')
         return data
 
-def evaluate(fixture, history, ranks, previous, now):
+def evaluate(fixture, history, ranks, previous, now, checks=None):
     """Each side is evaluated independently; absent evidence never qualifies."""
     out = []
     home, away = fixture['teams']['home'], fixture['teams']['away']
@@ -71,9 +75,9 @@ def evaluate(fixture, history, ranks, previous, now):
                 missing.append('Marcador H2H no disponible')
             elif goals < threshold:
                 reasons.append(f'Goles H2H insuficientes ({goals}/{threshold})')
-        rank = ranks.get(rival['id'])
+        rank, rank_check = resolve_rank(fixture, rival['id'], ranks.get(rival['id']), checks or [], now)
         if rank is None:
-            missing.append('Posición del rival no disponible')
+            missing.append(rank_check.get('note') or 'Posición del rival no disponible; requiere verificación web')
         elif rank <= 5:
             reasons.append('Rival entre los primeros 5')
         recent = previous.get(team['id'])
@@ -93,7 +97,7 @@ def evaluate(fixture, history, ranks, previous, now):
             'reasons': reasons + missing, 'rivalRank': rank, 'h2h': last,
             'previous': recent, 'goals': goals, 'won': won,
             'previousVenue': oldside, 'requiredH2hGoals': threshold,
-            'targetGoals': 1})
+            'targetGoals': 1, 'rankVerification': rank_check})
     return out
 
 def main():
@@ -110,6 +114,7 @@ def main():
         load_env(args.env)
     api = API()
     config = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
+    checks = load_checks(ROOT)
     now = datetime.now(TZ)
     matches, errors, leagues_seen = [], [], set()
     selected = {x['id'] for x in config['leagues']}
@@ -125,13 +130,7 @@ def main():
             ranks, previous, history = {}, {}, []
             try:
                 tables = api.get('standings', league=league['id'], season=league['season'])['response']
-                # Multiple groups can give contradictory ranks: require one unambiguous rank.
-                positions = {}
-                for table in tables:
-                    for group in table['league']['standings']:
-                        for row in group:
-                            positions.setdefault(row['team']['id'], set()).add(row['rank'])
-                ranks = {k: next(iter(v)) for k, v in positions.items() if len(v) == 1}
+                ranks = api_ranks(tables, f)
             except Exception as e:
                 errors.append(f"Clasificación {league['name']}: {e}")
             try:
@@ -142,7 +141,7 @@ def main():
                     previous[team['id']] = max(recent, key=lambda x: x['fixture']['date']) if recent else None
             except Exception as e:
                 errors.append(f"Antecedentes {f['fixture']['id']}: {e}")
-            matches.append({'fixture': f, 'selections': evaluate(f, history, ranks, previous, now)})
+            matches.append({'fixture': f, 'selections': evaluate(f, history, ranks, previous, now, checks)})
     result = {'updatedAt': now.isoformat(), 'from': args.date, 'days': args.days,
         'source': 'API-Football', 'matches': matches, 'errors': errors,
         'leaguesSeen': len(leagues_seen), 'apiCalls': api.calls, 'demo': False}
