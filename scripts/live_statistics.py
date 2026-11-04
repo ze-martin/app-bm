@@ -5,6 +5,7 @@ import subprocess
 import urllib.request
 import urllib.error
 import base64
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -62,11 +63,11 @@ def save_observation(root,fixture,selections,statistics,now):
         temp.replace(path)
     return data, bool(fresh)
 
-def publish_observations(data):
+def publish_observations(data,path='data/live70.json'):
     """Public sports data only. No Actions build per live observation."""
     process=subprocess.run(['git','credential','fill'],input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True)
     credential=dict(line.split('=',1) for line in process.stdout.splitlines() if '=' in line)
-    token=credential.get('password')
+    token=os.environ.get('GITHUB_TOKEN') or credential.get('password')
     if not token:
         raise RuntimeError('No hay autenticación GitHub para publicar las observaciones.')
     def api(path,method='GET',body=None):
@@ -86,13 +87,24 @@ def publish_observations(data):
         body={'message':'Actualizar observaciones deportivas del minuto 70','branch':branch,
             'content':base64.b64encode(json.dumps(data,ensure_ascii=False).encode()).decode()}
         try:
-            old=api('/contents/data/live70.json?ref='+branch)
+            old=api('/contents/'+path+'?ref='+branch)
+            if path=='data/history.json':
+                remote=json.loads(base64.b64decode(old['content']))
+                rows={r['id']:r for r in remote.get('records',[])}
+                for row in data['records']:
+                    previous=rows.get(row['id'],{})
+                    merged={**previous,**row}
+                    for field in ('notice','capture','result'):
+                        merged[field]=row.get(field) or previous.get(field)
+                    rows[row['id']]=merged
+                data={**data,'records':list(rows.values())}
+                body['content']=base64.b64encode(json.dumps(data,ensure_ascii=False).encode()).decode()
             if base64.b64decode(old.get('content','')) == base64.b64decode(body['content']):
                 return
             body['sha']=old['sha']
         except urllib.error.HTTPError as e:
             if e.code!=404:raise
-        api('/contents/data/live70.json','PUT',body)
+        api('/contents/'+path,'PUT',body)
     except Exception:
         raise RuntimeError('No se pudo publicar el archivo deportivo en GitHub; se conserva copia local.') from None
 

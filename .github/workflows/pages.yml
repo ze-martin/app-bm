@@ -6,7 +6,7 @@ on:
   push:
     branches: [main, master]
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -37,10 +37,15 @@ jobs:
           python scripts/refresh.py --days 3
       - name: Reevaluar evidencia y vigencia
         run: python scripts/recheck.py
+      - name: Conservar registro y liquidar resultados
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/tracking_history.py --remote --settle --publish
       - name: Preparar archivos públicos
         run: |
           mkdir public
-          cp index.html styles.css app.js dashboard.js live70.js config.json PROTOCOL_STANDINGS.md TELEGRAM.md public/
+          cp index.html history.html styles.css app.js dashboard.js live70.js config.json PROTOCOL_STANDINGS.md TELEGRAM.md public/
           cp -r data public/
           if [ -d reports ]; then cp -r reports public/; fi
       - uses: actions/configure-pages@v5

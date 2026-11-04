@@ -71,6 +71,11 @@ def message(s, f, statistics=None):
         "https://ze-martin.github.io/app-bm/")
 
 def run_once(dry_run=False,capture_only=False,publish=False):
+    try:
+        from .tracking_history import sync
+    except ImportError:
+        from tracking_history import sync
+    sync(ROOT)
     now=datetime.now(TZ)
     data=json.loads((ROOT/'data/matches.json').read_text(encoding='utf-8'))
     # A shortlist must be refreshed daily. Never alert from an old multi-day report.
@@ -126,6 +131,12 @@ def run_once(dry_run=False,capture_only=False,publish=False):
                 temp.write_text(json.dumps(sent),encoding='utf-8')
                 temp.replace(ledger)
                 print('Aviso enviado para fixture '+str(f['fixture']['id']),flush=True)
+    history=sync(ROOT)
+    if publish:
+        try:
+            publish_observations(history,path='data/history.json')
+        except RuntimeError as e:
+            print(str(e),flush=True)
     print('Consulta en vivo completada; '+str(len(watch))+' partidos en seguimiento.',flush=True)
 
 def main():

@@ -151,6 +151,11 @@ def main():
     temp = target.with_suffix('.tmp')
     temp.write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
     temp.replace(target)
+    try:
+        from .tracking_history import sync
+    except ImportError:
+        from tracking_history import sync
+    sync(ROOT)
     print(f"Listo: {len(matches)} partidos, {api.calls} consultas, {len(errors)} incidencias.")
 
 if __name__ == '__main__':

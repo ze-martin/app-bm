@@ -59,3 +59,8 @@ Fuentes: [Creación de bots](https://core.telegram.org/bots/tutorial), [Cómo fu
 4. Abre `Iniciar avisos Telegram.cmd`. Primero renueva los partidos y luego mantiene el monitor activo, con avisos al 65 y capturas al 70. Hay que conservar la ventana abierta, el PC encendido y sin suspensión.
 
 El aviso al 65 es único por partido/equipo y usa una clave distinta de los antiguos avisos al 70 para evitar mezclar registros. La captura al 70 no dispara un segundo aviso.
+
+
+## Registro permanente
+
+`history.html` muestra el registro desde el 3 de noviembre de 2026. `data/history.json` conserva las selecciones aunque dejen de estar en el snapshot actual. El monitor registra avisos realmente enviados y capturas; Actions revisa resultados en sus actualizaciones programadas. La liquidación usa eventos reconciliados contra el marcador final reglamentario: minuto mayor que 70, incluyendo 90+; eventos incompletos quedan pendientes. No se infieren revisión de dominio, recomendación manual ni apuesta realizada. La recuperación inicial es parcial y separa evidencia previa de evaluaciones posteriores. El JSON publicado contiene solo datos deportivos y horas de envío, sin token ni chat privado.
