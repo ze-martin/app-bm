@@ -1,5 +1,5 @@
 import {initLive70} from './live70.js?v=extended70';
-import {renderDashboard} from './dashboard.js?v=dashboard70';
+import {renderDashboard} from './dashboard.js?v=notice65';
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const stamp=v=>new Date(v).toLocaleString('es-PE',{timeZone:'America/Bogota',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});

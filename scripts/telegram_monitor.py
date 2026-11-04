@@ -1,4 +1,4 @@
-"""Live minute-70 monitoring. Run continuously on an always-on machine."""
+"""Minute-65 Telegram notice and separate minute-70 statistics capture."""
 import argparse
 import json
 import os
@@ -24,7 +24,7 @@ def fetch_live(key):
         raise RuntimeError('API-Football no entregó datos en vivo.')
     return data.get('response',[])
 
-def should_alert(selection, fixture, now=None):
+def live_candidate_in_window(selection, fixture, first, last, now=None):
     check=selection.get('rankVerification',{})
     if check.get('status')=='verified':
         try:
@@ -37,8 +37,14 @@ def should_alert(selection, fixture, now=None):
     minute=state.get('elapsed')
     side=next((s for s in ('home','away') if fixture['teams'][s]['id']==selection['teamId']),None)
     return (selection.get('prequalified') is True and state['short']=='2H'
-        and type(minute) is int and 70 <= minute <= 75 and side is not None
+        and type(minute) is int and first <= minute <= last and side is not None
         and fixture['goals'].get(side)==0)
+
+def should_alert(selection,fixture,now=None):
+    return live_candidate_in_window(selection,fixture,65,69,now)
+
+def should_capture(selection,fixture,now=None):
+    return live_candidate_in_window(selection,fixture,70,75,now)
 
 def telegram(token, chat_id, text):
     request=urllib.request.Request('https://api.telegram.org/bot'+token+'/sendMessage',
@@ -54,11 +60,14 @@ def telegram(token, chat_id, text):
         raise RuntimeError('No se pudo enviar el aviso a Telegram.') from None
 
 def message(s, f, statistics=None):
-    return (f"BM · REVISAR PARTIDO · minuto {f['fixture']['status']['elapsed']}\n"
+    minute=f['fixture']['status']['elapsed']
+    return (f"BM · AVISO PREVIO · minuto {minute}\n"
+        f"Revisar para el 70′: faltan aproximadamente {max(0,70-minute)} minutos de juego.\n"
         f"{f['teams']['home']['name']} {f['goals']['home']}–{f['goals']['away']} {f['teams']['away']['name']}\n"
         f"Equipo preseleccionado: {s['team']} (aún sin gol).\n"
+        f"Estadísticas al momento del aviso ({minute}′):\n"
         +(statistics_text(statistics,f)+'\n' if statistics is not None else '')+
-        "Comprobar dominio y estadísticas SOLO del segundo tiempo. No es una orden de apostar.\n"
+        "Comprobar dominio y estadísticas SOLO del segundo tiempo. Si el elegido marca antes del 70, descartar. No es una orden de apostar.\n"
         "https://ze-martin.github.io/app-bm/")
 
 def run_once(dry_run=False,capture_only=False,publish=False):
@@ -87,26 +96,26 @@ def run_once(dry_run=False,capture_only=False,publish=False):
         match=watch.get(f['fixture']['id'])
         if not match:
             continue
-        qualifying=[s for s in match['selections'] if should_alert(s,f)]
-        if not qualifying:
+        captures=[s for s in match['selections'] if should_capture(s,f)]
+        alerts=[s for s in match['selections'] if should_alert(s,f)
+            and f"{f['fixture']['id']}:{s['teamId']}:65" not in sent]
+        if not captures and (capture_only or not alerts):
             continue
         try:
             statistics=fetch_statistics(key,f)
         except Exception:
             statistics=normalize_stats({'response':[]},f)
             print('Estadísticas no disponibles para fixture '+str(f['fixture']['id']),flush=True)
-        observations,changed=save_observation(ROOT,f,qualifying,statistics,now)
-        if publish:
+        observations,changed=save_observation(ROOT,f,captures,statistics,now) if captures else (None,False)
+        if publish and captures:
             try:
                 publish_observations(observations)
             except RuntimeError as e:
                 print(str(e),flush=True)
         if capture_only:
             continue
-        for s in match['selections']:
-            identity=f"{f['fixture']['id']}:{s['teamId']}:70"
-            if identity in sent or not should_alert(s,f):
-                continue
+        for s in alerts:
+            identity=f"{f['fixture']['id']}:{s['teamId']}:65"
             if dry_run:
                 print('SIMULACIÓN: '+message(s,f,statistics),flush=True)
             else:

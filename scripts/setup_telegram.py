@@ -1,5 +1,6 @@
 """Interactive local setup: token is never displayed or committed."""
 import getpass
+import argparse
 import json
 import urllib.request
 from pathlib import Path
@@ -7,6 +8,9 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--test',action='store_true',help='Enviar confirmación al chat privado al terminar')
+    args=parser.parse_args()
     print('Crea un bot con @BotFather y envíale /start desde tu Telegram.')
     token=getpass.getpass('Token del bot (oculto): ').strip()
     if not token or '\n' in token or '\r' in token:
@@ -29,7 +33,16 @@ def main():
     kept=[line for line in old.splitlines() if not line.startswith(('TELEGRAM_BOT_TOKEN=','TELEGRAM_CHAT_ID='))]
     kept.extend(['TELEGRAM_BOT_TOKEN='+token,'TELEGRAM_CHAT_ID='+str(chat)])
     path.write_text('\n'.join(kept)+'\n',encoding='utf-8')
-    print('Telegram configurado en .env local, excluido de Git. No se ha enviado ningún mensaje.')
+    print('Telegram configurado en .env local, excluido de Git.')
+    if args.test:
+        from telegram_monitor import telegram
+        try:
+            telegram(token,str(chat),'BM conectado. Los avisos están preparados para el minuto real 65 y la revisión al 70. Inicia el monitor para recibirlos; este mensaje solo confirma la conexión.')
+        except RuntimeError:
+            raise SystemExit('Credenciales guardadas, pero no se pudo enviar la confirmación. Revisa /start y la conexión.') from None
+        print('Confirmación enviada a tu chat privado. El monitor se inicia por separado.')
+    else:
+        print('No se ha enviado ningún mensaje.')
 
 if __name__=='__main__':
     main()
