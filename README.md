@@ -55,3 +55,9 @@ Panel de cobertura de clasificación, filtros acumulados, motivos de descarte, d
 Se contrastaron todas las identidades con el catálogo de API-Football. Paraguay necesita 250 (Apertura) y 252 (Clausura); 251 es División Intermedia y queda fuera. Uruguay usa 268 para las fases de 2026; el antiguo 270 no tiene temporada 2026 y no se añade. Cada ficha del catálogo público muestra país, nombre del proveedor, ID, temporada y fecha de auditoría.
 
 `python scripts/audit_leagues.py --env RUTA_ENV` comprueba que el alcance requerido esté completo y que coincidan país, tipo y temporada. El workflow repite la auditoría antes de cada descarga programada. Identidad verificada no garantiza estadísticas disponibles en cada fixture.
+
+## Análisis histórico de octubre 2026
+
+`python scripts/backtest_october.py` descarga historiales de las 48 competiciones y de todos los clubes participantes en octubre; conserva el caché histórico en `.cache/backtest-october-2026/`. `python scripts/render_backtest.py` genera el informe HTML, CSV y JSON en `reports/october-2026/`.
+
+El análisis es una simulación, no un registro de apuestas. Las posiciones son una reconstrucción por puntos sin archivo oficial de sanciones; se separan empates que cruzan el quinto puesto, conferencias, fases complejas y copas. La entrada exige cero goles del elegido al 70; se concilian los eventos con el marcador reglamentario antes de resolver gol del elegido y cualquier gol posterior. No se usan estadísticas finales para inferir dominio al 70 ni se calcula rentabilidad sin cuotas históricas. El informe detalla todas las limitaciones y sus denominadores.
