@@ -75,5 +75,15 @@ class TelegramRules(unittest.TestCase):
                 send.assert_not_called()
                 capture.assert_called_once()
 
+    def test_second_recipient_failure_does_not_duplicate_success(self):
+        now=datetime.now(monitor.TZ)
+        self.fixture['fixture']['date']=(now-timedelta(minutes=90)).isoformat()
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'data').mkdir()
+            (root/'data/matches.json').write_text(json.dumps({'updatedAt':now.isoformat(),'matches':[{'fixture':self.fixture,'selections':[self.selection]}]}),encoding='utf-8')
+            with patch.object(monitor,'ROOT',root),patch.dict(monitor.os.environ,{'FOOTBALL_API_KEY':'test','TELEGRAM_BOT_TOKEN':'test','TELEGRAM_CHAT_ID':'one','TELEGRAM_CHAT_IDS':'one,two'}),patch.object(monitor,'fetch_live',return_value=[self.fixture]),patch.object(monitor,'fetch_statistics',return_value=None),patch.object(monitor,'telegram',side_effect=[None,RuntimeError('failed'),None]) as send:
+                monitor.run_once();monitor.run_once();monitor.run_once()
+                self.assertEqual([call.args[1] for call in send.call_args_list],['one','two','two'])
+
 if __name__=='__main__':
     unittest.main()

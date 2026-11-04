@@ -63,4 +63,8 @@ El aviso al 65 es único por partido/equipo y usa una clave distinta de los anti
 
 ## Registro permanente
 
+## Agregar otro destinatario
+
+Comparte el enlace de tu bot con la otra persona, que debe abrirlo y enviar `/start`. Después ejecuta `Agregar destinatario Telegram.cmd` y selecciona su nombre. Se conserva el chat original y se envía una prueba al nuevo destinatario. No se usa el número telefónico ni se comparte el token. Si el monitor estaba ejecutándose antes de esta mejora, reinícialo. Cada entrega se registra por destinatario en un archivo local privado, para reintentar fallos sin duplicar avisos a quienes ya los recibieron.
+
 `history.html` muestra el registro desde el 3 de noviembre de 2026. `data/history.json` conserva las selecciones aunque dejen de estar en el snapshot actual. El monitor registra avisos realmente enviados y capturas; Actions revisa resultados en sus actualizaciones programadas. La liquidación usa eventos reconciliados contra el marcador final reglamentario: minuto mayor que 70, incluyendo 90+; eventos incompletos quedan pendientes. No se infieren revisión de dominio, recomendación manual ni apuesta realizada. La recuperación inicial es parcial y separa evidencia previa de evaluaciones posteriores. El JSON publicado contiene solo datos deportivos y horas de envío, sin token ni chat privado.

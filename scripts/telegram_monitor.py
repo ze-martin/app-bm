@@ -59,6 +59,16 @@ def telegram(token, chat_id, text):
         # Token lives in the URL: never propagate the URL in exception output.
         raise RuntimeError('No se pudo enviar el aviso a Telegram.') from None
 
+def recipients():
+    # Read the local list on each poll so adding a recipient needs no restart.
+    values=dict(os.environ)
+    path=ROOT/'.env'
+    if path.exists():
+        for line in path.read_text(encoding='utf-8').splitlines():
+            if line.startswith(('TELEGRAM_CHAT_ID=','TELEGRAM_CHAT_IDS=')):
+                key,value=line.split('=',1);values[key]=value.strip()
+    return list(dict.fromkeys(c.strip() for c in (values.get('TELEGRAM_CHAT_ID','')+','+values.get('TELEGRAM_CHAT_IDS','')).split(',') if c.strip()))
+
 def message(s, f, statistics=None):
     minute=f['fixture']['status']['elapsed']
     return (f"BM · AVISO PREVIO · minuto {minute}\n"
@@ -91,11 +101,18 @@ def run_once(dry_run=False,capture_only=False,publish=False):
     key=os.environ.get('FOOTBALL_API_KEY')
     if not key:
         raise RuntimeError('Falta FOOTBALL_API_KEY.')
-    token, chat=os.environ.get('TELEGRAM_BOT_TOKEN'),os.environ.get('TELEGRAM_CHAT_ID')
-    if not dry_run and not capture_only and (not token or not chat):
+    token, chats=os.environ.get('TELEGRAM_BOT_TOKEN'),recipients()
+    if not dry_run and not capture_only and (not token or not chats):
         raise RuntimeError('Configurar Telegram con scripts/setup_telegram.py antes de activar envíos.')
     ledger=ROOT/'.cache/telegram-sent.json'
     sent=json.loads(ledger.read_text(encoding='utf-8')) if ledger.exists() else {}
+    deliveries=ROOT/'.cache/telegram-deliveries.json'
+    delivered=json.loads(deliveries.read_text(encoding='utf-8')) if deliveries.exists() else {}
+    # Old installations sent only to the original recipient.
+    primary=os.environ.get('TELEGRAM_CHAT_ID')
+    if not deliveries.exists():
+        for identity,stamp in sent.items():
+            if primary:delivered.setdefault(identity+':'+primary,stamp)
     live=fetch_live(key)
     for f in live:
         match=watch.get(f['fixture']['id'])
@@ -103,7 +120,7 @@ def run_once(dry_run=False,capture_only=False,publish=False):
             continue
         captures=[s for s in match['selections'] if should_capture(s,f)]
         alerts=[s for s in match['selections'] if should_alert(s,f)
-            and f"{f['fixture']['id']}:{s['teamId']}:65" not in sent]
+            and any(f"{f['fixture']['id']}:{s['teamId']}:65:{chat}" not in delivered for chat in chats)]
         if not captures and (capture_only or not alerts):
             continue
         try:
@@ -124,12 +141,21 @@ def run_once(dry_run=False,capture_only=False,publish=False):
             if dry_run:
                 print('SIMULACIÓN: '+message(s,f,statistics),flush=True)
             else:
-                telegram(token,chat,message(s,f,statistics))
-                sent[identity]=now.isoformat()
-                ledger.parent.mkdir(exist_ok=True)
-                temp=ledger.with_suffix('.tmp')
-                temp.write_text(json.dumps(sent),encoding='utf-8')
-                temp.replace(ledger)
+                for chat in chats:
+                    delivery=identity+':'+chat
+                    if delivery in delivered:continue
+                    try:
+                        telegram(token,chat,message(s,f,statistics))
+                    except RuntimeError:
+                        print('No se pudo entregar a un destinatario; se reintentará en la ventana del aviso.',flush=True)
+                        continue
+                    delivered[delivery]=now.isoformat()
+                    deliveries.parent.mkdir(exist_ok=True)
+                    temp=deliveries.with_suffix('.tmp')
+                    temp.write_text(json.dumps(delivered),encoding='utf-8');temp.replace(deliveries)
+                    sent.setdefault(identity,now.isoformat())
+                    temp=ledger.with_suffix('.tmp')
+                    temp.write_text(json.dumps(sent),encoding='utf-8');temp.replace(ledger)
                 print('Aviso enviado para fixture '+str(f['fixture']['id']),flush=True)
     history=sync(ROOT)
     if publish:
