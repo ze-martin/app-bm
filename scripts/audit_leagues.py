@@ -15,7 +15,7 @@ REQUIRED={281:'Peru',310:'Albania',78:'Germany',307:'Saudi-Arabia',128:'Argentin
     140:'Spain',179:'Scotland',332:'Slovakia',373:'Slovenia',253:'USA',244:'Finland',197:'Greece',
     39:'England',40:'England',357:'Ireland',383:'Israel',135:'Italy',262:'Mexico',103:'Norway',88:'Netherlands',
     250:'Paraguay',252:'Paraguay',106:'Poland',94:'Portugal',283:'Romania',286:'Serbia',113:'Sweden',
-    207:'Switzerland',203:'Turkey',333:'Ukraine',268:'Uruguay',2:'World',3:'World'}
+    207:'Switzerland',203:'Turkey',333:'Ukraine',268:'Uruguay',2:'World',3:'World',848:'World'}
 
 def build_audit(config,catalog,now):
     by_id={entry['league']['id']:entry for entry in catalog}
@@ -30,7 +30,7 @@ def build_audit(config,catalog,now):
         actual=by_id.get(item['id'])
         if not actual or actual['country']['name']!=REQUIRED.get(item['id']):
             raise ValueError('Identidad o país no válido para '+str(item['id']))
-        if actual['league']['type']!=('Cup' if item['id'] in {2,3} else 'League'):
+        if actual['league']['type']!=('Cup' if item['id'] in {2,3,848} else 'League'):
             raise ValueError('Tipo de competición inesperado: '+str(item['id']))
         seasons=[s for s in actual['seasons'] if s['year']==now.year]
         if not seasons:

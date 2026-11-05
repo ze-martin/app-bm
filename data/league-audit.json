@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-03T16:59:59.788550-05:00",
+  "checkedAt": "2026-11-05T10:47:06.763182-05:00",
   "source": "API-Football /leagues",
   "competitions": [
     {
@@ -577,8 +577,20 @@
       "standingsCoverage": true,
       "statisticsCoverage": true,
       "note": ""
+    },
+    {
+      "id": 848,
+      "name": "Conference League",
+      "country": "World",
+      "officialName": "UEFA Europa Conference League",
+      "season": 2026,
+      "status": "verified",
+      "providerType": "Cup",
+      "standingsCoverage": true,
+      "statisticsCoverage": true,
+      "note": ""
     }
   ],
-  "total": 48,
+  "total": 49,
   "note": "Identidad y temporada verificadas. La cobertura declarada no garantiza datos completos para cada partido."
 }
