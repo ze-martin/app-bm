@@ -24,7 +24,7 @@ def fetch_live(key):
         raise RuntimeError('API-Football no entregó datos en vivo.')
     return data.get('response',[])
 
-def live_candidate_in_window(selection, fixture, first, last, now=None):
+def live_candidate_in_window(selection, fixture, first, last, now=None, require_zero=True):
     check=selection.get('rankVerification',{})
     if check.get('status')=='verified':
         try:
@@ -38,10 +38,11 @@ def live_candidate_in_window(selection, fixture, first, last, now=None):
     side=next((s for s in ('home','away') if fixture['teams'][s]['id']==selection['teamId']),None)
     return (selection.get('prequalified') is True and state['short']=='2H'
         and type(minute) is int and first <= minute <= last and side is not None
-        and fixture['goals'].get(side)==0)
+        and type(fixture['goals'].get(side)) is int and fixture['goals'][side]>=0
+        and (not require_zero or fixture['goals'][side]==0))
 
 def should_alert(selection,fixture,now=None):
-    return live_candidate_in_window(selection,fixture,65,69,now)
+    return live_candidate_in_window(selection,fixture,65,69,now,require_zero=False)
 
 def should_capture(selection,fixture,now=None):
     return live_candidate_in_window(selection,fixture,70,75,now)
@@ -71,13 +72,24 @@ def recipients():
 
 def message(s, f, statistics=None):
     minute=f['fixture']['status']['elapsed']
+    side=next(side for side in ('home','away') if f['teams'][side]['id']==s['teamId'])
+    already_scored=f['goals'][side]>0
+    status=('DESCARTADO PARA EL MÉTODO ORIGINAL: el elegido ya marcó.\n'
+        'Alternativas para revisión manual desde DESPUÉS del 70 hasta el final: '
+        'menos de 0,5 (ningún gol de ambos equipos) o menos de 1,5 (cero o un gol).\n'
+        'Octubre, descartados: menos de 0,5 = 73/165 (44,2%; uno pendiente); '
+        'menos de 1,5 = 141/166 (84,9%). Muestra reconstruida; no son probabilidades del partido actual.\n'
+        'No hay una regla validada para elegir mercado con las estadísticas actuales. Revisar cuota y segundo tiempo al 70.\n'
+        if already_scored else
+        'ELEGIDO AÚN SIN GOL: revisar el método original al 70.\n'
+        'Comprobar dominio y estadísticas SOLO del segundo tiempo. Si marca antes del 70, descartar el método original y revisar alternativas de menos goles manualmente.\n')
     return (f"BM · AVISO PREVIO · minuto {minute}\n"
         f"Revisar para el 70′: faltan aproximadamente {max(0,70-minute)} minutos de juego.\n"
         f"{f['teams']['home']['name']} {f['goals']['home']}–{f['goals']['away']} {f['teams']['away']['name']}\n"
-        f"Equipo preseleccionado: {s['team']} (aún sin gol).\n"
+        f"Equipo preseleccionado: {s['team']}.\n"+status+
         f"Estadísticas al momento del aviso ({minute}′):\n"
         +(statistics_text(statistics,f)+'\n' if statistics is not None else '')+
-        "Comprobar dominio y estadísticas SOLO del segundo tiempo. Si el elegido marca antes del 70, descartar. No es una orden de apostar.\n"
+        "Aviso previo, no recomendación automática. No usar el total final del partido para liquidar estos mercados: solo goles posteriores al 70, incluido el descuento.\n"
         "https://ze-martin.github.io/app-bm/")
 
 def run_once(dry_run=False,capture_only=False,publish=False):

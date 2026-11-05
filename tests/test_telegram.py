@@ -16,9 +16,14 @@ class TelegramRules(unittest.TestCase):
     def test_real_minute_65_and_zero_goals(self):
         self.assertTrue(should_alert(self.selection,self.fixture))
         self.assertIn('faltan aproximadamente 5',message(self.selection,self.fixture))
-    def test_already_scored_no_alert(self):
+    def test_already_scored_gets_alternative_review_notice(self):
         self.fixture['goals']['away']=1
-        self.assertFalse(should_alert(self.selection,self.fixture))
+        self.assertTrue(should_alert(self.selection,self.fixture))
+        text=message(self.selection,self.fixture)
+        self.assertIn('DESCARTADO PARA EL MÉTODO ORIGINAL',text)
+        self.assertIn('menos de 0,5',text)
+        self.assertIn('menos de 1,5',text)
+        self.assertNotIn('ELEGIDO AÚN SIN GOL',text)
     def test_unknown_score_no_alert(self):
         self.fixture['goals']['away']=None
         self.assertFalse(should_alert(self.selection,self.fixture))
