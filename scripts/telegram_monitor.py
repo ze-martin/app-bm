@@ -24,6 +24,22 @@ def fetch_live(key):
         raise RuntimeError('API-Football no entregó datos en vivo.')
     return data.get('response',[])
 
+def sync_published_shortlist():
+    """Use scheduled Pages refreshes without overwriting a newer local snapshot."""
+    path=ROOT/'data/matches.json'
+    request=urllib.request.Request('https://ze-martin.github.io/app-bm/data/matches.json?t='+str(int(time.time())),headers={'Cache-Control':'no-cache'})
+    with urllib.request.urlopen(request,timeout=25) as response:
+        remote=json.load(response)
+    stamp=datetime.fromisoformat(remote['updatedAt'])
+    now=datetime.now(TZ)
+    if not isinstance(remote.get('matches'),list) or remote.get('demo') or not timedelta(minutes=-5)<=now-stamp<=timedelta(hours=24):
+        raise RuntimeError('La lista publicada no está vigente; se conserva la copia local.')
+    local=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+    if not local.get('updatedAt') or stamp>datetime.fromisoformat(local['updatedAt']):
+        temp=path.with_suffix('.tmp')
+        temp.write_text(json.dumps(remote,ensure_ascii=False),encoding='utf-8');temp.replace(path)
+        print('Preselección sincronizada con la actualización publicada.',flush=True)
+
 def live_candidate_in_window(selection, fixture, first, last, now=None, require_zero=True):
     check=selection.get('rankVerification',{})
     if check.get('status')=='verified':
@@ -206,8 +222,15 @@ def main():
         p.error('Ya hay un monitor activo. Si se cerró abruptamente, revisar y retirar .cache/telegram-monitor.lock.')
     os.close(fd)
     deadline=time.monotonic()+args.hours*3600 if args.hours else None
+    next_sync=0
     try:
         while True:
+            if time.monotonic()>=next_sync:
+                try:
+                    sync_published_shortlist()
+                except Exception:
+                    print('No se pudo sincronizar Pages; se comprobará la vigencia de la lista local.',flush=True)
+                next_sync=time.monotonic()+900
             try:
                 run_once(args.dry_run,args.capture_only,args.publish)
             except Exception as e:

@@ -73,3 +73,6 @@ Comparte el enlace de tu bot con la otra persona, que debe abrirlo y enviar `/st
 ## Avisos de todos los preseleccionados
 
 Desde esta actualización, el aviso entre 65 y 69 incluye al preseleccionado aunque ya haya marcado. En ese caso se identifica como descartado para el método original y se muestran menos de 0,5 / menos de 1,5 goles de ambos equipos DESPUÉS del 70 hasta el final, incluido descuento, como alternativas para revisión manual. Los resultados de octubre son agregados de una simulación y no deciden automáticamente un mercado. Se mantienen la vigencia de la lista y de la evidencia de clasificación, el marcador conocido y la deduplicación por destinatario. Esto no incorpora equipos que fallaron los filtros históricos de preselección. La captura al 70 del método original continúa limitada al elegido sin gol. Reiniciar el monitor que ya estuviera abierto para cargar este cambio.
+
+
+El monitor sincroniza la lista publicada de Pages al iniciar y cada 15 minutos. Conserva una copia local más nueva y rechaza snapshots de más de 24 horas. Esto requiere que la actualización programada de Pages funcione; no mantiene el proceso activo si la PC se apaga o reinicia.

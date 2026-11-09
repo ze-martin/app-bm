@@ -3,11 +3,26 @@ import tempfile
 import json
 from pathlib import Path
 from unittest.mock import patch
+from io import BytesIO
 from datetime import datetime, timezone, timedelta
 from scripts.telegram_monitor import should_alert, should_capture, message
 from scripts import telegram_monitor as monitor
 
 class TelegramRules(unittest.TestCase):
+    def test_published_sync_keeps_newer_local_and_rejects_stale(self):
+        now=datetime.now(monitor.TZ)
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'data').mkdir()
+            path=root/'data/matches.json'
+            local={'updatedAt':now.isoformat(),'matches':[]}
+            path.write_text(json.dumps(local),encoding='utf-8')
+            remote={'updatedAt':(now-timedelta(hours=1)).isoformat(),'matches':[]}
+            with patch.object(monitor,'ROOT',root),patch.object(monitor.urllib.request,'urlopen',return_value=BytesIO(json.dumps(remote).encode())):
+                monitor.sync_published_shortlist()
+            self.assertEqual(json.loads(path.read_text()),local)
+            remote['updatedAt']=(now-timedelta(days=2)).isoformat()
+            with patch.object(monitor,'ROOT',root),patch.object(monitor.urllib.request,'urlopen',return_value=BytesIO(json.dumps(remote).encode())):
+                with self.assertRaises(RuntimeError):monitor.sync_published_shortlist()
     def setUp(self):
         self.selection={'prequalified':True,'teamId':1,'team':'ADT'}
         self.fixture={'fixture':{'id':10,'status':{'short':'2H','elapsed':65}},
